@@ -5,54 +5,56 @@
  */
 package com.cinves.server;
 
+import com.cinves.whiit.LastLocation;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 /**
  *
  * @author Bto Conchas
  */
 
-public class Listener implements Runnable{
-private final ServerSocket sSocket;
-private Socket socket;
-private String message;
-private BufferedReader reader;
-private PrintStream output;
+public class Listener implements Runnable {
 
-    public Listener(int port ) throws IOException{
+    private final ServerSocket sSocket;
+    private Socket socket;
+    private PrintStream output;
+
+    public Listener(int port) throws IOException {
         sSocket = new ServerSocket(port);
-        socket =new Socket();
+        socket = new Socket();
     }
-    
+
     @Override
     public void run() {
-    try {
-        while(true){
-        System.out.println("esperando conexion");
-        socket = sSocket.accept();
-        
-        System.out.println("se han conectado");
-        
-        
-        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        output= new PrintStream( socket.getOutputStream()); 
-        
-        message =  reader.readLine();
-        System.out.println("mensaje: ");
-        System.out.println(message);
-         output.println("mensaje recibido");  
-         
-         reader.close();
-         output.close();
-        
+        try {
+            while (true) {
+                System.out.println("esperando conexion");
+                socket = sSocket.accept();
+
+                System.out.println("se han conectado");
+
+                ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+
+                output = new PrintStream(socket.getOutputStream());
+
+                LastLocation l = (LastLocation) input.readObject();
+                System.out.println("mensaje: ");
+                System.out.println(l);
+                System.out.println("----------------------------------------------------------------------");
+                output.println("mensaje recibido");
+                
+                input.close();
+                output.close();
+
+            }
+        } catch (IOException | ClassNotFoundException ex) {
+            System.out.println("Error al generar socket " + ex);
         }
-    } catch (IOException ex) {
-        System.out.println("Error al generar socket "+ex);
     }
-    }
-    
+
 }
