@@ -24,7 +24,7 @@ import java.util.List;
 public class MainActivity extends ActionBarActivity {
 
     private ListView listView;
-    public TextView textView;
+    private TextView textView;
     private Thread t;
 
     @Override
@@ -80,7 +80,7 @@ public class MainActivity extends ActionBarActivity {
             if(result!=null){
                 MainActivity.this.textView.setTextColor(Color.GREEN);
                 MainActivity.this.textView.setText("Conectado!");
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, result);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, result);
                 MainActivity.this.listView.setAdapter(adapter);
             }
             else{
@@ -91,7 +91,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         protected List<String> doInBackground(Void... params) {
-            InetAddress inetAddress = null;
+            InetAddress inetAddress;
             List<String> list =  null;
             try {
                 inetAddress = InetAddress.getByName(SERVERIP);
