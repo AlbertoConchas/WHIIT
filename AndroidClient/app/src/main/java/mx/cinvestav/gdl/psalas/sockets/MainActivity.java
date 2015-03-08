@@ -1,29 +1,30 @@
 package mx.cinvestav.gdl.psalas.sockets;
 
-import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
 
-    private final String SERVERIP = "10.0.5.192";
-    private final int SERVERPORT = 5000;
-    private Socket socket;
-    private ArrayList<String> list;
     private ListView listView;
+    public TextView textView;
     private Thread t;
 
     @Override
@@ -31,8 +32,8 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         listView = (ListView)findViewById(R.id.listView);
-        t = new Thread(new ClientThread());
-        t.start();
+        textView = (TextView)findViewById(R.id.textView2);
+        new AsyncClient().execute();
     }
 
 
@@ -52,37 +53,96 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_scan) {
-            if(socket!=null) {
-                try {
-                    ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                    Object o = inputStream.read();
-                    list = (ArrayList<String>) o;
-                    ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, list);
-                    listView.setAdapter(adapter);
-                } catch (IOException e) {
-                    Toast.makeText(this, "No InputStream", Toast.LENGTH_LONG).show();
-                }
-            }
+            new AsyncClient().execute();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    class AsyncClient extends AsyncTask<Void, Void, List<String> > {
 
-
-    class ClientThread implements Runnable{
+        //private final String SERVERIP = "10.0.5.192";
+        private final String SERVERIP = "192.168.1.77";
+        private final int SERVERPORT = 5000;
+        private Socket socket;
+        private String response = "";
+        private int color;
 
         @Override
-        public void run() {
-            try {
-                InetAddress inetAddress = InetAddress.getByName(SERVERIP);
-                socket = new Socket(inetAddress,SERVERPORT);
-            } catch (UnknownHostException e) {
-                System.out.println(e.getMessage());
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
+        protected void onPreExecute() {
+            MainActivity.this.textView.setTextColor(Color.YELLOW);
+            MainActivity.this.textView.setText("Conectando...");
+        }
+
+        @Override
+        protected void onPostExecute(List<String> result) {
+            if(result!=null){
+                MainActivity.this.textView.setTextColor(Color.GREEN);
+                MainActivity.this.textView.setText("Conectado!");
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, result);
+                MainActivity.this.listView.setAdapter(adapter);
+            }
+            else{
+                MainActivity.this.textView.setTextColor(color);
+                MainActivity.this.textView.setText(response);
             }
         }
+
+        @Override
+        protected List<String> doInBackground(Void... params) {
+            InetAddress inetAddress = null;
+            List<String> list =  null;
+            try {
+                inetAddress = InetAddress.getByName(SERVERIP);
+                socket = new Socket(inetAddress,SERVERPORT);
+                System.out.println("Recibiendo lista");
+                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+                Object o = inputStream.readObject();
+                System.out.println("o = " + o);
+                list = (List<String>) o;
+                if(list.size()==0){
+                    list.add("No hay clientes conectados");
+                }
+                System.out.println("Enviando nombre de cliente");
+                if(!list.contains(MainActivity.this.getAccountName())) {
+                    System.out.println("Envio nombre por ke no existe");
+                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                    out.println(MainActivity.this.getAccountName());
+                }
+            } catch (UnknownHostException e) {
+                color = Color.RED;
+                response+= "Host Desconocido";
+            } catch (IOException e) {
+                color = Color.RED;
+                response+= "Error de Conexion";
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } finally {
+                if(socket!=null){
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        color = Color.RED;
+                        response+= "Error al cerrar la conexion";
+                    }
+                }
+            }
+            return list;
+        }
+    }
+
+    private String getAccountName() {
+        String accountName = null;
+
+        AccountManager manager = (AccountManager) getSystemService(ACCOUNT_SERVICE);
+        Account[] list = manager.getAccounts();
+        for (Account account : list) {
+            if (account.type.equalsIgnoreCase("com.google")) {
+                accountName = account.name;
+                break;
+            }
+        }
+        return accountName;
     }
 }
