@@ -56,14 +56,17 @@ public class MainActivity extends ActionBarActivity {
             new AsyncClient().execute();
             return true;
         }
+        else if(id==R.id.action_config){
+
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
     class AsyncClient extends AsyncTask<Void, Void, List<String> > {
 
-        //private final String SERVERIP = "10.0.5.192";
-        private final String SERVERIP = "192.168.1.77";
+        private final String SERVERIP = "10.0.5.192";
+        //private final String SERVERIP = "192.168.1.77";
         private final int SERVERPORT = 5000;
         private Socket socket;
         private String response = "";
@@ -129,6 +132,26 @@ public class MainActivity extends ActionBarActivity {
                 }
             }
             return list;
+        }
+    }
+
+    class AsyncSender extends AsyncTask<String,Integer,Void>{
+
+        @Override
+        protected void onPreExecute() {
+            MainActivity.this.textView.setTextColor(Color.YELLOW);
+            MainActivity.this.textView.setText("Conectando...");
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            return null;
         }
     }
 
