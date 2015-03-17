@@ -6,8 +6,8 @@
 package com.cinves.client;
 
 import com.cinves.deskapp.DeskApp;
-import com.cinves.whiit.LastLocation;
-import com.cinves.whiit.Update;
+import com.cinves.whitt.LastLocation;
+import com.cinves.whitt.Update;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
