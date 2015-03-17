@@ -8,15 +8,11 @@ package com.cinves.deskapp.listener;
 import com.cinves.deskapp.DeskApp;
 import com.cinves.whitt.LastLocation;
 import com.cinves.whitt.Update;
-import static com.sun.medialib.mlib.Image.Log;
-import static com.sun.medialib.mlib.Image.Log;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
-import java.net.Socket;
 import java.net.SocketException;
 import java.util.Date;
 import java.util.Enumeration;
@@ -32,14 +28,12 @@ public class Listener implements Runnable {
     private final LastLocation yo;
     private final InetAddress grupo;
     private final MulticastSocket socket;
-    //private final DatagramSocket socket2;
 
     public Listener(int port) throws IOException {
 
         yo = new LastLocation(getLocalAddress(), new Date(), "biblioteca");
         grupo = InetAddress.getByName("228.5.6.7");
         socket = new MulticastSocket(port);
-        //socket2 = new DatagramSocket();
     }
 
     @Override
@@ -65,8 +59,7 @@ public class Listener implements Runnable {
 
                         yo.setUpdate(new Date());
                         byte[] m = DeskApp.serialize(yo);
-                        //DatagramPacket mensajeSalida = new DatagramPacket(m, m.length, mensajeEntrada.getAddress(), 6000);
-                        //socket2.send(mensajeSalida);
+                        (new Thread(new Resp(m,mensajeEntrada.getAddress()))).start();
                         System.out.println("Aki se supone que se contesta el mensaje");
                     }
                 }
