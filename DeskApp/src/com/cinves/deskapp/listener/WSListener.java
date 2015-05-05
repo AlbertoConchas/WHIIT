@@ -27,7 +27,7 @@ public class WSListener implements Runnable {
         yo = new LastLocation();
         yo.setName("Beto");
         yo.setUpdate(date);
-        yo.setLocation("Biblioteca");
+        yo.setLocation("cubo39");
         endpointURL = endpoint;
     }
 

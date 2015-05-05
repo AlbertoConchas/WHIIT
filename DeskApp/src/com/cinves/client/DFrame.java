@@ -58,7 +58,7 @@ public final class DFrame extends javax.swing.JFrame {
     }
     private void updateWs() {
         resultWSList.clear();
-        jButton1.setEnabled(false);
+        jButton2.setEnabled(false);
         List<com.cinves.whiit.LastLocation> list = listar();
         for (com.cinves.whiit.LastLocation list1 : list) {
             resultWSList.addElement(list1.toString());
@@ -208,6 +208,7 @@ public final class DFrame extends javax.swing.JFrame {
                     break;
                 } catch (IOException   |ClassNotFoundException ex) {
                     System.err.println("fallo al actualizar " +ex);
+                    jButton1.setEnabled(true);
                     socket.close();
                     break;
                 }
