@@ -48,10 +48,11 @@ public final class DFrame extends javax.swing.JFrame {
     }
 
     public void update() throws IOException, ClassNotFoundException {
+        resultList.clear();
         jButton1.setEnabled(false);
         socket = new MulticastSocket(6000);
         socket.setSoTimeout(10000);
-        byte[] m = DeskApp.serialize(new Update(3, "aa"));
+        byte[] m = DeskApp.serialize(new Update(3, "Beto"));
         DatagramPacket mensajeSalida = new DatagramPacket(m, m.length, grupo, 5000);
         socket.send(mensajeSalida);
         
@@ -139,12 +140,12 @@ public final class DFrame extends javax.swing.JFrame {
                 } catch (SocketTimeoutException ex) {
                     System.out.println("Fin actualización Time Out.");        
                     jButton1.setEnabled(true);
+                    socket.close();
                     break;
                 } catch (IOException   |ClassNotFoundException ex) {
                     System.err.println("fallo al actualizar " +ex);
-                    break;
-                } finally {
                     socket.close();
+                    break;
                 }
 
             }
