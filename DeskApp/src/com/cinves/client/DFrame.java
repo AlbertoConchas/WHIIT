@@ -40,6 +40,7 @@ public final class DFrame extends javax.swing.JFrame {
         endpointURL = endpoint;
         grupo = InetAddress.getByName("228.5.6.7");
         update();
+        updateWs();
 
     }
 
@@ -47,7 +48,7 @@ public final class DFrame extends javax.swing.JFrame {
         resultList.clear();
         jButton1.setEnabled(false);
         socket = new MulticastSocket(6000);
-        socket.setSoTimeout(10000);
+        socket.setSoTimeout(2000);
         byte[] m = DeskApp.serialize(new Update(3, "Beto"));
         DatagramPacket mensajeSalida = new DatagramPacket(m, m.length, grupo, 5000);
         socket.send(mensajeSalida);
@@ -57,7 +58,7 @@ public final class DFrame extends javax.swing.JFrame {
     }
     private void updateWs() {
         resultWSList.clear();
-        jButton1.setEnabled(false);
+        jButton2.setEnabled(false);
         List<com.cinves.whiit.LastLocation> list = listar();
         for (com.cinves.whiit.LastLocation list1 : list) {
             resultWSList.addElement(list1.toString());
@@ -207,6 +208,7 @@ public final class DFrame extends javax.swing.JFrame {
                     break;
                 } catch (IOException   |ClassNotFoundException ex) {
                     System.err.println("fallo al actualizar " +ex);
+                    jButton1.setEnabled(true);
                     socket.close();
                     break;
                 }

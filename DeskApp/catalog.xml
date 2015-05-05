@@ -2,4 +2,6 @@
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
     <system systemId="http://localhost:8080/WebS/Whiit?wsdl" uri="xml-resources/web-service-references/Whiit/wsdl/localhost_8080/WebS/Whiit.wsdl"/>
     <system systemId="http://localhost:8080/WebS/Whiit?xsd=1" uri="xml-resources/web-service-references/Whiit/wsdl/localhost_8080/WebS/Whiit.xsd_1.xsd"/>
+    <system systemId="http://10.0.5.181:8080/WebS/Whiit?wsdl" uri="xml-resources/web-service-references/Whiit/wsdl/10.0.5.181_8080/WebS/Whiit.wsdl"/>
+    <system systemId="http://10.0.5.181:8080/WebS/Whiit?xsd=1" uri="xml-resources/web-service-references/Whiit/wsdl/10.0.5.181_8080/WebS/Whiit.xsd_1.xsd"/>
 </catalog>

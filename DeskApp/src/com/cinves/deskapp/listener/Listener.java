@@ -31,7 +31,7 @@ public class Listener implements Runnable {
 
     public Listener(int port) throws IOException {
 
-        yo = new LastLocation(getLocalAddress(), new Date(), "biblioteca");
+        yo = new LastLocation("Beto", new Date(), "cubo39");
         grupo = InetAddress.getByName("228.5.6.7");
         socket = new MulticastSocket(port);
     }
