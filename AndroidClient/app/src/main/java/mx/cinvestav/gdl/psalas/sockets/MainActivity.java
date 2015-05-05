@@ -26,7 +26,9 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -36,6 +38,7 @@ public class MainActivity extends ActionBarActivity {
 
     private ListView listView;
     private TextView textView;
+    private ArrayList<String> list;
     private Thread t;
 
     @Override
@@ -44,10 +47,10 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         listView = (ListView) findViewById(R.id.listView);
         textView = (TextView) findViewById(R.id.textView2);
-        //new AsyncClient().execute();
         try {
             new Thread(new SenderSocketClient()).start();
             new Thread(new RecieverSocketServer()).start();
+            new Thread(new ReceiverSocketClient()).start();
         } catch (SocketException e) {
             e.printStackTrace();
         } catch (UnknownHostException e) {
@@ -74,7 +77,6 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_scan) {
-            new AsyncClient().execute();
             return true;
         } else if (id == R.id.action_config) {
 
@@ -97,76 +99,6 @@ public class MainActivity extends ActionBarActivity {
         return accountName;
     }
 
-    class AsyncClient extends AsyncTask<Void, Void, List<String>> {
-
-        private final String SERVERIP = "10.0.5.192";
-        //private final String SERVERIP = "192.168.1.77";
-        private final int SERVERPORT = 5000;
-        private Socket socket;
-        private String response = "";
-        private int color;
-
-        @Override
-        protected void onPreExecute() {
-            MainActivity.this.textView.setTextColor(Color.YELLOW);
-            MainActivity.this.textView.setText("Conectando...");
-        }
-
-        @Override
-        protected void onPostExecute(List<String> result) {
-            if (result != null) {
-                MainActivity.this.textView.setTextColor(Color.GREEN);
-                MainActivity.this.textView.setText("Conectado!");
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, result);
-                MainActivity.this.listView.setAdapter(adapter);
-            } else {
-                MainActivity.this.textView.setTextColor(color);
-                MainActivity.this.textView.setText(response);
-            }
-        }
-
-        @Override
-        protected List<String> doInBackground(Void... params) {
-            InetAddress inetAddress;
-            List<String> list = null;
-            try {
-                inetAddress = InetAddress.getByName(SERVERIP);
-                socket = new Socket(inetAddress, SERVERPORT);
-                System.out.println("Recibiendo lista");
-                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                Object o = inputStream.readObject();
-                System.out.println("o = " + o);
-                list = (List<String>) o;
-                if (list.size() == 0) {
-                    list.add("No hay clientes conectados");
-                }
-                System.out.println("Enviando nombre de cliente");
-                if (!list.contains(MainActivity.this.getAccountName())) {
-                    System.out.println("Envio nombre por ke no existe");
-                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                    out.println(MainActivity.this.getAccountName());
-                }
-            } catch (UnknownHostException e) {
-                color = Color.RED;
-                response += "Host Desconocido";
-            } catch (IOException e) {
-                color = Color.RED;
-                response += "Error de Conexion";
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } finally {
-                if (socket != null) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        color = Color.RED;
-                        response += "Error al cerrar la conexion";
-                    }
-                }
-            }
-            return list;
-        }
-    }
 
     class SenderSocketClient implements Runnable {
 
@@ -185,7 +117,8 @@ public class MainActivity extends ActionBarActivity {
                     byte[] message = Serialize.serialize(new Update(3,getLocalAddress()));
                     DatagramPacket packet = new DatagramPacket(message,message.length,group,5000);
                     socket.send(packet);
-                    Thread.sleep(30000);
+                    System.out.println("Se envio un paquete por el puerto 5000");
+                    Thread.sleep(3000);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -225,6 +158,54 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    class ReceiverSocketClient implements Runnable{
+
+        private MulticastSocket socket;
+        private InetAddress group;
+
+        public ReceiverSocketClient() throws IOException {
+            socket = new MulticastSocket(6000);
+            group = InetAddress.getByName("228.5.6.7");
+        }
+
+        @Override
+        public void run() {
+            try {
+                socket.joinGroup(group);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            while (true) {
+                try {
+                    byte[] bytes = new byte[1000];
+                    DatagramPacket packet = new DatagramPacket(bytes,bytes.length);
+                    System.out.println("Espera a recibir un packete por el puerto 6000");
+                    socket.receive(packet);
+                    Object obj = Serialize.deserialize(packet.getData());
+                    if(obj instanceof LastLocation){
+                        if(!list.contains(obj)){
+                            list.add(obj.toString());
+                            ArrayAdapter<String>adapter = new ArrayAdapter<>(MainActivity.this,android.R.layout.simple_list_item_1,list);
+                            MainActivity.this.listView.setAdapter(adapter);
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            if (socket != null){ socket.close();
+                System.out.println("Se cerro el socket");}
+            super.finalize();
+        }
+    }
+
     class RecieverSocketServer implements Runnable {
 
         private MulticastSocket socket;
@@ -234,7 +215,7 @@ public class MainActivity extends ActionBarActivity {
         RecieverSocketServer() throws IOException {
             socket = new MulticastSocket(5000);
             group = InetAddress.getByName("228.5.6.7");
-            me = new LastLocation(getLocalAddress(),new Date(),"home");
+            me = new LastLocation(getLocalAddress(),new Date(),getLocation());
         }
 
         @Override
@@ -250,17 +231,21 @@ public class MainActivity extends ActionBarActivity {
                 try {
                     byte[] bytes = new byte[1000];
                     DatagramPacket packet = new DatagramPacket(bytes,bytes.length);
+                    System.out.println("Esperando a recibir del puerto 5000");
                     socket.receive(packet);
                     Object obj = Serialize.deserialize(packet.getData());
 
                     if(obj instanceof Update){
                         Update update = (Update) obj;
                         if(!update.getName().equals(me.getName())){
-                            System.out.println("Update recibido por: "+ packet.getAddress());
+                            System.out.println("Update recibido por: " + packet.getAddress());
                             me.setUpdate(new Date());
+                            byte[] message = Serialize.serialize(me);
+                            new Thread(new SenderSocketServer(message,packet.getAddress())).start();
                             System.out.println("aki debo regresar el mensaje");
                         }
                     }
+                    else System.out.println(obj);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -299,6 +284,37 @@ public class MainActivity extends ActionBarActivity {
             } else return "Sin ip";
         }
 
+    }
+
+    private String getLocation() {
+        return "Cubo38";
+    }
+
+    class SenderSocketServer implements Runnable{
+
+        private DatagramSocket socket;
+        private InetAddress address;
+        private byte[] msg;
+
+        public SenderSocketServer(byte[] message, InetAddress address) throws SocketException, UnknownHostException {
+            socket = new DatagramSocket();
+            this.address = address;
+            msg = message;
+        }
+
+        @Override
+        public void run() {
+            try {
+                DatagramPacket packet = new DatagramPacket(msg,msg.length,address,6000);
+                System.out.println("Enviando mensaje por el puerto 6000 a la direccion: "+address);
+                socket.send(packet);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }finally {
+                if (socket != null){ socket.close();
+                    System.out.println("Se cerro el socket");}
+            }
+        }
     }
 
 }
