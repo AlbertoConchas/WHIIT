@@ -40,6 +40,7 @@ public final class DFrame extends javax.swing.JFrame {
         endpointURL = endpoint;
         grupo = InetAddress.getByName("228.5.6.7");
         update();
+        updateWs();
 
     }
 
@@ -47,7 +48,7 @@ public final class DFrame extends javax.swing.JFrame {
         resultList.clear();
         jButton1.setEnabled(false);
         socket = new MulticastSocket(6000);
-        socket.setSoTimeout(10000);
+        socket.setSoTimeout(2000);
         byte[] m = DeskApp.serialize(new Update(3, "Beto"));
         DatagramPacket mensajeSalida = new DatagramPacket(m, m.length, grupo, 5000);
         socket.send(mensajeSalida);

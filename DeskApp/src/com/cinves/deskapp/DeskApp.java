@@ -20,7 +20,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
  * @author alberto
  */
 public class DeskApp {
-    private static final String endpoint="http://localhost:8080/WebS/Whiit?wsdl";
+    private static final String endpoint="http://10.0.5.181:8080/WebS/Whiit?wsdl";
     /**
      * @param args the command line arguments
      * @throws java.io.IOException
@@ -34,6 +34,9 @@ public class DeskApp {
             (new Thread(new Listener(5000))).start();
             (new Thread(new WSListener(endpoint))).start();
         } else {
+            System.out.println("Ejecutando server");
+             (new Thread(new Listener(5000))).start();
+            (new Thread(new WSListener(endpoint))).start();
             System.out.println("Ejecutando cliente");
             java.awt.EventQueue.invokeLater(new Runnable() {
                 @Override

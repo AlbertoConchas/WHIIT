@@ -12,9 +12,13 @@
 
 <xs:element name="listResponse" type="tns:listResponse"/>
 
-<xs:complexType name="inform">
+<xs:complexType name="list">
+<xs:sequence/>
+</xs:complexType>
+
+<xs:complexType name="listResponse">
 <xs:sequence>
-<xs:element name="lastLocation" type="tns:lastLocation" minOccurs="0"/>
+<xs:element name="return" type="tns:lastLocation" minOccurs="0" maxOccurs="unbounded"/>
 </xs:sequence>
 </xs:complexType>
 
@@ -23,20 +27,6 @@
 <xs:element name="location" type="xs:string" minOccurs="0"/>
 <xs:element name="name" type="xs:string" minOccurs="0"/>
 <xs:element name="update" type="xs:dateTime" minOccurs="0"/>
-</xs:sequence>
-</xs:complexType>
-
-<xs:complexType name="informResponse">
-<xs:sequence/>
-</xs:complexType>
-
-<xs:complexType name="list">
-<xs:sequence/>
-</xs:complexType>
-
-<xs:complexType name="listResponse">
-<xs:sequence>
-<xs:element name="return" type="tns:lastLocation" minOccurs="0" maxOccurs="unbounded"/>
 </xs:sequence>
 </xs:complexType>
 
@@ -50,5 +40,15 @@
 <xs:sequence>
 <xs:element name="return" type="tns:lastLocation" minOccurs="0"/>
 </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="inform">
+<xs:sequence>
+<xs:element name="lastLocation" type="tns:lastLocation" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="informResponse">
+<xs:sequence/>
 </xs:complexType>
 </xs:schema>
