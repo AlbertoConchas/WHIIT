@@ -99,7 +99,6 @@ public class MainActivity extends ActionBarActivity {
         return accountName;
     }
 
-
     class SenderSocketClient implements Runnable {
 
         private DatagramSocket socket;
@@ -130,7 +129,7 @@ public class MainActivity extends ActionBarActivity {
         @Override
         protected void finalize() throws Throwable {
             if (socket != null){ socket.close();
-            System.out.println("Se cerro el socket");}
+                System.out.println("Se cerro el socket");}
             super.finalize();
         }
 
